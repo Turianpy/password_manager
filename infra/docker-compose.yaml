@@ -18,6 +18,7 @@ services:
     build:
       context: ../
     env_file: .env
+    restart: always
     volumes:
       - ../password_manager:/app
       - password_manager_static:/app/static
