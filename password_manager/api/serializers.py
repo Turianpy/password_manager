@@ -2,6 +2,11 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
+from .utils import generate_salt
+from .encryption import encrypt_password
+
+from passwords.models import PasswordServicePair as PSP
+
 User = get_user_model()
 
 
@@ -17,6 +22,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         pw = validated_data.pop('password')
+        validated_data['salt'] = generate_salt()
         user = User(**validated_data)
         user.set_password(pw)
         user.save()
@@ -44,3 +50,50 @@ class GetTokenSerializer(serializers.Serializer):
                 'Account is not activated'
             )
         return attrs
+
+
+class PSPCreateSerializer(serializers.ModelSerializer):
+
+    password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = PSP
+        fields = ('service_name', 'password')
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        user_password = user.password
+        password = validated_data.pop('password')
+
+        iv, encrypted_password = encrypt_password(
+            password,
+            user_password,
+            user.salt
+        )
+
+        psp, _ = PSP.objects.update_or_create(
+            user=user,
+            service_name=validated_data['service_name'],
+            defaults={
+                'encrypted_password': encrypted_password,
+                'iv': iv
+            }
+        )
+        return psp
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret['password'] = instance.get_password()
+        return ret
+
+
+class PSPSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PSP
+        fields = ('service_name', )
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['password'] = instance.get_password()
+        return representation

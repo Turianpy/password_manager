@@ -1,7 +1,7 @@
 from celery import shared_task
 from celery.utils.log import get_task_logger
 
-from .utils import send_activation_email, generate_user_token
+from .utils import generate_user_token, send_activation_email
 
 logger = get_task_logger(__name__)
 

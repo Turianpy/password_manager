@@ -12,6 +12,7 @@ ALLOWED_HOSTS = ['*']
 
 
 INSTALLED_APPS = [
+    'passwords',
     'users',
     'api',
     'rest_framework',
@@ -128,3 +129,5 @@ EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 DEFAULT_FROM_EMAIL = 'pwdmanager <admin@pwdmanager.com>'
 
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
+
+APPEND_SLASH = False

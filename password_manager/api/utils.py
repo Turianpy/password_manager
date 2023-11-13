@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta
 
 import jwt
@@ -46,3 +47,7 @@ def get_tokens(user):
         'refresh': str(refresh),
         'access': str(refresh.access_token),
     }
+
+
+def generate_salt(length=16):
+    return os.urandom(length)

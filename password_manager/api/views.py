@@ -5,14 +5,13 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.mixins import (CreateModelMixin, ListModelMixin,
-                                   RetrieveModelMixin)
+from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from users.models import User
-
-from .serializers import UserSerializer, GetTokenSerializer
+from passwords.models import PasswordServicePair as PSP
+from .serializers import GetTokenSerializer, UserSerializer, PSPCreateSerializer, PSPSerializer
 from .tasks import send_activation_email_task
-from .utils import get_tokens, generate_user_token
+from .utils import generate_user_token, get_tokens
 
 
 @api_view(['POST'])
@@ -63,6 +62,7 @@ def activate(request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
+
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def get_token(request):
@@ -70,3 +70,42 @@ def get_token(request):
     serializer.is_valid(raise_exception=True)
     user = get_object_or_404(User, email=serializer.validated_data['email'])
     return Response(get_tokens(user), status=status.HTTP_200_OK)
+
+
+class PSPViewSet(ModelViewSet):
+    allowed_methods = ['GET', 'POST']
+    queryset = PSP.objects.all()
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return PSPCreateSerializer
+        return PSPSerializer
+
+    def create(self, request, *args, **kwargs):
+        service_name = kwargs.get('service_name')
+        request.data['service_name'] = service_name
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def retrieve(self, request, *args, **kwargs):
+        service_name = kwargs.get('service_name')
+        user = request.user
+        psp = get_object_or_404(PSP, user=user, service_name=service_name)
+        password = psp.get_password()
+
+        return Response(
+            {'password': password, 'service_name': service_name},
+            status=status.HTTP_200_OK
+        )
+
+    def list(self, request, *args, **kwargs):
+        part_of_service_name = request.query_params.get('service_name')
+        user = request.user
+        psps = PSP.objects.filter(
+            user=user,
+            service_name__icontains=part_of_service_name
+        )
+        serializer = self.get_serializer(psps, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
