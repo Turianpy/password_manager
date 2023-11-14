@@ -18,7 +18,9 @@
 ## Эндпоинты:
 
 Регистрация:
+
 `/api/auth/signup/`
+
 POST:
 ```json
 {
@@ -36,9 +38,10 @@ POST:
 В ответ на GET запрос после перехода по валидной ссылке, пользователь получит ответ:
 ```json
 {
-	"message": "Account successfully activated"
+	"message": "Account successfully activated"
 }
 ```
+
 
 Получение токена:
 
@@ -57,12 +60,13 @@ POST:
 
 ```json
 {
-    "refresh": "str",
-    "access": "str"
+	"refresh": "str",
+	"access": "str"
 }
 ```
 
 После добавления access токена в Bearer header,  пользователь может обратиться к эндпоинтам ниже
+
 
 Создание и получение пары пароль-сервис:
 
