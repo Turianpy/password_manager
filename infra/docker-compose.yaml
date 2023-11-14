@@ -15,8 +15,7 @@ services:
       - 6379:6379
 
   api:
-    build:
-      context: ../
+    image: turianpy/password_manager:latest
     env_file: .env
     restart: always
     volumes:
@@ -27,10 +26,10 @@ services:
     depends_on:
       - db
       - redis
+    command: python manage.py makemigrations && python manage.py migrate
 
   celery:
-    build:
-      context: ../
+    image: turianpy/password_manager:latest
     command: celery -A password_manager.celery_ worker --loglevel=info
 
     env_file: .env
