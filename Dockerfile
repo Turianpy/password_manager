@@ -11,5 +11,3 @@ COPY . .
 ENV PYTHONPATH .
 
 CMD ["gunicorn", "password_manager.wsgi:application", "--bind", "0:8000", "--workers", "3", "--reload"]
-
-EXPOSE 8000

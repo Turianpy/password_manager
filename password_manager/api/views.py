@@ -26,6 +26,9 @@ def signup(request):
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def activate(request):
+    """
+    Проверяет токен и, если все ок, активирует пользователя
+    """
     token = request.query_params.get('token')
     if not token:
         return Response(
@@ -75,6 +78,7 @@ def get_token(request):
 class PSPViewSet(ModelViewSet):
     allowed_methods = ['GET', 'POST']
     queryset = PSP.objects.all()
+    permission_classes = (permissions.IsAuthenticated, )
 
     def get_serializer_class(self):
         if self.action == 'create':
@@ -82,6 +86,10 @@ class PSPViewSet(ModelViewSet):
         return PSPSerializer
 
     def create(self, request, *args, **kwargs):
+        """
+        Берет название сервиса из пути,
+        добавляет в данные запроса и отправляет в сериализатор
+        """
         service_name = kwargs.get('service_name')
         mutable = request.data.copy()
         mutable['service_name'] = service_name
@@ -102,6 +110,10 @@ class PSPViewSet(ModelViewSet):
         )
 
     def list(self, request, *args, **kwargs):
+        """
+        Если в параметрах запроса есть service_name, фильтрует по icontains,
+        если нет, врзвращает все пароли пользователя
+        """
         part_of_service_name = request.query_params.get('service_name') or ''
         user = request.user
         psps = PSP.objects.filter(

@@ -7,6 +7,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 
 def derive_key(master_password, salt, iterations=100000):
+
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=32,
@@ -19,6 +20,7 @@ def derive_key(master_password, salt, iterations=100000):
 
 
 def encrypt_password(password, master_password, salt, iterations=100000):
+
     key = derive_key(master_password, salt, iterations)
     iv = urandom(16)
     cipher = Cipher(
@@ -37,6 +39,7 @@ def decrypt_password(
         master_password, salt,
         iv, iterations=100000
 ):
+
     key = derive_key(master_password, salt, iterations)
     cipher = Cipher(
         algorithms.AES(key), modes.CBC(iv),
