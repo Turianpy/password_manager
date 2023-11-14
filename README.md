@@ -38,7 +38,7 @@ POST:
 В ответ на GET запрос после перехода по валидной ссылке, пользователь получит ответ:
 ```json
 {
-	"message": "Account successfully activated"
+	"message": "Account successfully activated"
 }
 ```
 
