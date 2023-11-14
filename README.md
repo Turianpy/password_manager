@@ -60,8 +60,8 @@ POST:
 
 ```json
 {
-    "refresh": "str",
-    "access": "str"
+	"refresh": "str",
+	"access": "str"
 }
 ```
 
