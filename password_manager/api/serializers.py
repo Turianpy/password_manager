@@ -1,28 +1,30 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
+from passwords.models import PasswordServicePair as PSP
 from rest_framework import serializers
 
-from .utils import generate_salt
 from .encryption import encrypt_password
-
-from passwords.models import PasswordServicePair as PSP
 
 User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
 
+    password = serializers.CharField(
+        write_only=True,
+        required=True,
+        validators=[validate_password]
+    )
+
     class Meta:
         model = User
         fields = ('username', 'email', 'password')
         extra_kwargs = {
-            'password': {'write_only': True},
-            'id': {'read_only': True}
+            'id': {'read_only': True},
         }
 
     def create(self, validated_data):
         pw = validated_data.pop('password')
-        validated_data['salt'] = generate_salt()
         user = User(**validated_data)
         user.set_password(pw)
         user.save()

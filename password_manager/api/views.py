@@ -1,17 +1,17 @@
 import jwt
 from django.conf import settings
-from django.contrib.auth.password_validation import validate_password
-from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
-from rest_framework import permissions, status, viewsets
-from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.response import Response
-from users.models import User
 from passwords.models import PasswordServicePair as PSP
-from .serializers import GetTokenSerializer, UserSerializer, PSPCreateSerializer, PSPSerializer
+from rest_framework import permissions, status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet
+from users.models import User
+
+from .serializers import (GetTokenSerializer, PSPCreateSerializer,
+                          PSPSerializer, UserSerializer)
 from .tasks import send_activation_email_task
-from .utils import generate_user_token, get_tokens
+from .utils import get_tokens
 
 
 @api_view(['POST'])
@@ -83,8 +83,9 @@ class PSPViewSet(ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         service_name = kwargs.get('service_name')
-        request.data['service_name'] = service_name
-        serializer = self.get_serializer(data=request.data)
+        mutable = request.data.copy()
+        mutable['service_name'] = service_name
+        serializer = self.get_serializer(data=mutable)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -101,7 +102,7 @@ class PSPViewSet(ModelViewSet):
         )
 
     def list(self, request, *args, **kwargs):
-        part_of_service_name = request.query_params.get('service_name')
+        part_of_service_name = request.query_params.get('service_name') or ''
         user = request.user
         psps = PSP.objects.filter(
             user=user,

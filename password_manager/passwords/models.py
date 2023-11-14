@@ -1,6 +1,5 @@
-from django.db import models
-
 from api.encryption import decrypt_password
+from django.db import models
 
 
 class PasswordServicePair(models.Model):

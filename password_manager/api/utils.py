@@ -32,10 +32,10 @@ def send_activation_email(username, email, token):
     return email.send(fail_silently=False)
 
 
-def generate_user_token(email):
+def generate_user_token(email, exp=60):
     payload = {
         'email': email,
-        'exp': datetime.utcnow() + timedelta(minutes=60),
+        'exp': datetime.utcnow() + timedelta(minutes=exp),
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
 

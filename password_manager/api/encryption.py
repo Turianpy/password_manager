@@ -1,4 +1,3 @@
-import base64
 from os import urandom
 
 from cryptography.hazmat.backends import default_backend
@@ -22,7 +21,10 @@ def derive_key(master_password, salt, iterations=100000):
 def encrypt_password(password, master_password, salt, iterations=100000):
     key = derive_key(master_password, salt, iterations)
     iv = urandom(16)
-    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
+    cipher = Cipher(
+        algorithms.AES(key), modes.CBC(iv),
+        backend=default_backend()
+    )
     encryptor = cipher.encryptor()
     padder = padding.PKCS7(128).padder()
     padded_data = padder.update(password.encode()) + padder.finalize()
@@ -30,13 +32,24 @@ def encrypt_password(password, master_password, salt, iterations=100000):
     return iv, encrypted_password
 
 
-def decrypt_password(encrypted_password, master_password, salt, iv, iterations=100000):
+def decrypt_password(
+        encrypted_password,
+        master_password, salt,
+        iv, iterations=100000
+):
     key = derive_key(master_password, salt, iterations)
-    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
+    cipher = Cipher(
+        algorithms.AES(key), modes.CBC(iv),
+        backend=default_backend()
+    )
     decryptor = cipher.decryptor()
     unpadder = padding.PKCS7(128).unpadder()
 
-    decrypted_padded = decryptor.update(encrypted_password) + decryptor.finalize()
-    decrypted_password = unpadder.update(decrypted_padded) + unpadder.finalize()
+    decrypted_padded = decryptor.update(
+        encrypted_password
+    ) + decryptor.finalize()
+    decrypted_password = unpadder.update(
+        decrypted_padded
+    ) + unpadder.finalize()
 
     return decrypted_password.decode()
