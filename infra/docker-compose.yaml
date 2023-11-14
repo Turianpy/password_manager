@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   db:
+    container_name: pm_db
     image: postgres:13.0-alpine
     env_file: .env
     ports:
@@ -15,6 +16,7 @@ services:
       - 6379:6379
 
   api:
+    container_name: pm_api
     image: turianpy/password_manager:latest
     env_file: .env
     restart: always
@@ -32,6 +34,7 @@ services:
       gunicorn password_manager.wsgi:application --bind 0:8000 --workers 3"
 
   celery:
+    container_name: pm_celery
     image: turianpy/password_manager:latest
     command: celery -A password_manager.celery_ worker --loglevel=info
 
@@ -42,6 +45,7 @@ services:
       - api
 
   proxy:
+    container_name: pm_nginx
     image: nginx:1.19.6-alpine
     ports:
       - 80:80
